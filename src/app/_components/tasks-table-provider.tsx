@@ -19,6 +19,7 @@ interface TasksTableContextProps {
 
 const TasksTableContext = React.createContext<TasksTableContextProps>({
   featureFlags: [],
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   setFeatureFlags: () => {},
 });
 
