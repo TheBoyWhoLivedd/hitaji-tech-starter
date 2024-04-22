@@ -1,0 +1,99 @@
+{
+  "id": "604b112c-e9fc-476a-b1c3-72eb27682da3",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "mentee-register_tasks": {
+      "name": "mentee-register_tasks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(128)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "mentee-register_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'todo'"
+        },
+        "label": {
+          "name": "label",
+          "type": "mentee-register_label",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'bug'"
+        },
+        "priority": {
+          "name": "priority",
+          "type": "mentee-register_priority",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'low'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "mentee-register_tasks_code_unique": {
+          "name": "mentee-register_tasks_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      }
+    }
+  },
+  "enums": {
+    "mentee-register_label": {
+      "name": "mentee-register_label",
+      "values": {
+        "bug": "bug",
+        "feature": "feature",
+        "enhancement": "enhancement",
+        "documentation": "documentation"
+      }
+    },
+    "mentee-register_priority": {
+      "name": "mentee-register_priority",
+      "values": {
+        "low": "low",
+        "medium": "medium",
+        "high": "high"
+      }
+    },
+    "mentee-register_status": {
+      "name": "mentee-register_status",
+      "values": {
+        "todo": "todo",
+        "in-progress": "in-progress",
+        "done": "done",
+        "canceled": "canceled"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

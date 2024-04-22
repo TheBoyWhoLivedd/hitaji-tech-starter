@@ -1,37 +1,59 @@
-import Link from "next/link";
+import * as React from "react";
+import type { SearchParams } from "~/types";
+import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
+import { DateRangePicker } from "~/components/date-range-picker";
+import { Shell } from "~/components/shell";
+import { TasksTable } from "./_components/tasks-table";
+import { TasksTableProvider } from "./_components/tasks-table-provider";
+import { getTasks } from "./_lib/queries";
+import { searchParamsSchema } from "./_lib/validations";
+import { db } from "~/server/db";
+export const dynamic = "force-dynamic";
 
-export default function HomePage() {
+export interface IndexPageProps {
+  searchParams: SearchParams;
+}
+export default async function HomePage({ searchParams }: IndexPageProps) {
+  const search = searchParamsSchema.parse(searchParams);
+
+  const tasksPromise = getTasks(search);
+  const users = await db.query.users.findMany();
+  console.log(users);
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
-        </div>
-      </div>
-    </main>
+    <Shell className="gap-2">
+      {/**
+       * The `TasksTableProvider` is use to enable some feature flags for the `TasksTable` component.
+       * Feel free to remove this, as it's not required for the `TasksTable` component to work.
+       */}
+      <TasksTableProvider>
+        {/**
+         * The `DateRangePicker` component is used to render the date range picker UI.
+         * It is used to filter the tasks based on the selected date range it was created at.
+         * The business logic for filtering the tasks based on the selected date range is handled inside the component.
+         */}
+        <DateRangePicker
+          triggerSize="sm"
+          triggerClassName="ml-auto w-56 sm:w-60"
+          align="end"
+        />
+        <React.Suspense
+          fallback={
+            <DataTableSkeleton
+              columnCount={5}
+              searchableColumnCount={1}
+              filterableColumnCount={2}
+              cellWidths={["10rem", "40rem", "12rem", "12rem", "8rem"]}
+              shrinkZero
+            />
+          }
+        >
+          {/**
+           * Passing promises and consuming them using React.use for triggering the suspense fallback.
+           * @see https://react.dev/reference/react/use
+           */}
+          <TasksTable tasksPromise={tasksPromise} />
+        </React.Suspense>
+      </TasksTableProvider>
+    </Shell>
   );
 }
