@@ -13,6 +13,7 @@ import { generateId } from "~/lib/utils";
 import type { CreateTaskSchema, UpdateTaskSchema } from "./validations";
 import { getSSRSession } from "~/lib/get-server-session";
 import analyticsServerClient from "~/server/analytics";
+import { ratelimit } from "~/server/ratelimit";
 
 export async function seedTasks(
   input: { count: number; reset?: boolean } = {
@@ -95,6 +96,10 @@ export async function updateTask(input: UpdateTaskSchema & { id: string }) {
   if (!session.user || !session.user.id) throw new Error("Unauthenticated");
 
   const user = session.user;
+
+  const { success } = await ratelimit.limit(user.id);
+
+  if (!success) throw new Error("Too many requests");
 
   try {
     await db
