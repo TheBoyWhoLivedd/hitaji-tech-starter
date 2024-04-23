@@ -11,6 +11,8 @@ import { getErrorMessage } from "~/lib/handle-error";
 import { generateId } from "~/lib/utils";
 
 import type { CreateTaskSchema, UpdateTaskSchema } from "./validations";
+import { getSSRSession } from "~/lib/get-server-session";
+import analyticsServerClient from "~/server/analytics";
 
 export async function seedTasks(
   input: { count: number; reset?: boolean } = {
@@ -89,6 +91,11 @@ export async function createTask(
 
 export async function updateTask(input: UpdateTaskSchema & { id: string }) {
   noStore();
+  const session = await getSSRSession();
+  if (!session.user || !session.user.id) throw new Error("Unauthenticated");
+
+  const user = session.user;
+
   try {
     await db
       .update(tasks)
@@ -99,6 +106,15 @@ export async function updateTask(input: UpdateTaskSchema & { id: string }) {
         priority: input.priority,
       })
       .where(eq(tasks.id, input.id));
+
+    analyticsServerClient.capture({
+      distinctId: user.id,
+      event: "updated task",
+      properties: {
+        taskId: input.id,
+        name: user.name,
+      },
+    });
 
     revalidatePath("/");
 
