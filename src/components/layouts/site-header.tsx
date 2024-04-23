@@ -1,9 +1,9 @@
-import Link from "next/link"
-import { GitHubLogoIcon, VercelLogoIcon } from "@radix-ui/react-icons"
+import Link from "next/link";
+import { GitHubLogoIcon, VercelLogoIcon } from "@radix-ui/react-icons";
 
-import { siteConfig } from "~/config/site"
-import { Button } from "~/components/ui/button"
-import { ModeToggle } from "~/components/layouts/mode-toggle"
+import { siteConfig } from "~/config/site";
+import { Button } from "~/components/ui/button";
+import { ModeToggle } from "~/components/layouts/mode-toggle";
 
 export function SiteHeader() {
   return (
@@ -12,7 +12,8 @@ export function SiteHeader() {
         <Link href="/" className="mr-2 flex items-center md:mr-6 md:space-x-2">
           <VercelLogoIcon className="size-4" aria-hidden="true" />
           <span className="hidden font-bold md:inline-block">
-            {siteConfig.name}
+            {/* {siteConfig.name} */}
+            Home
           </span>
         </Link>
         <nav className="flex w-full items-center gap-6 text-sm">
@@ -40,5 +41,5 @@ export function SiteHeader() {
         </nav>
       </div>
     </header>
-  )
+  );
 }

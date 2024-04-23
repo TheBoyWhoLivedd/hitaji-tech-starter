@@ -6,7 +6,7 @@ import {
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
 // import DiscordProvider from "next-auth/providers/discord";
-import GoogleProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -22,6 +22,8 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      emailVerified: boolean | null;
+
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -39,16 +41,10 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
-  callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
-  },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     // DiscordProvider({
     //   clientId: env.DISCORD_CLIENT_ID,
@@ -68,6 +64,43 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  callbacks: {
+    // session: ({ session, user }) => ({
+    //   ...session,
+    //   user: {
+    //     ...session.user,
+    //     id: user.id,
+    //   },
+    // }),
+    async jwt({ token }) {
+      const dbUser = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.email, token.email!),
+      });
+
+      if (!dbUser) {
+        throw new Error("no user with email found");
+      }
+
+      return {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        picture: dbUser.image,
+        emailVerified: dbUser.emailVerified,
+      };
+    },
+    async session({ token, session }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.image = token.picture;
+        session.user.emailVerified = token.emailVerified as boolean | null;
+      }
+
+      return session;
+    },
+  },
 };
 
 /**

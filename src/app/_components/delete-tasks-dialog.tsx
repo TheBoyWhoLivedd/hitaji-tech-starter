@@ -4,7 +4,6 @@ import * as React from "react";
 import { type Task } from "~/server/db/schema";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { type Row } from "@tanstack/react-table";
-
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
 } from "~/components/ui/dialog";
 
 import { deleteTasks } from "../_lib/mutations";
+import { usePostHog } from "posthog-js/react";
 
 interface DeleteTasksDialogProps
   extends React.ComponentPropsWithoutRef<typeof Dialog> {
@@ -33,7 +33,7 @@ export function DeleteTasksDialog({
   ...props
 }: DeleteTasksDialogProps) {
   const [isDeletePending, startDeleteTransition] = React.useTransition();
-
+  const posthog = usePostHog();
   return (
     <Dialog {...props}>
       {showTrigger ? (
@@ -67,6 +67,7 @@ export function DeleteTasksDialog({
                     rows: tasks,
                     onSuccess,
                   });
+                  posthog.capture("Multiple_delete");
                 });
               }}
               disabled={isDeletePending}

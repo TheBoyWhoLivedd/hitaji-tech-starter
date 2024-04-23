@@ -8,6 +8,8 @@ import { TasksTableProvider } from "./_components/tasks-table-provider";
 import { getTasks } from "./_lib/queries";
 import { searchParamsSchema } from "./_lib/validations";
 import { db } from "~/server/db";
+import { Button } from "~/components/ui/button";
+import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export interface IndexPageProps {
@@ -20,40 +22,10 @@ export default async function HomePage({ searchParams }: IndexPageProps) {
   const users = await db.query.users.findMany();
   console.log(users);
   return (
-    <Shell className="gap-2">
-      {/**
-       * The `TasksTableProvider` is use to enable some feature flags for the `TasksTable` component.
-       * Feel free to remove this, as it's not required for the `TasksTable` component to work.
-       */}
-      <TasksTableProvider>
-        {/**
-         * The `DateRangePicker` component is used to render the date range picker UI.
-         * It is used to filter the tasks based on the selected date range it was created at.
-         * The business logic for filtering the tasks based on the selected date range is handled inside the component.
-         */}
-        <DateRangePicker
-          triggerSize="sm"
-          triggerClassName="ml-auto w-56 sm:w-60"
-          align="end"
-        />
-        <React.Suspense
-          fallback={
-            <DataTableSkeleton
-              columnCount={5}
-              searchableColumnCount={1}
-              filterableColumnCount={2}
-              cellWidths={["10rem", "40rem", "12rem", "12rem", "8rem"]}
-              shrinkZero
-            />
-          }
-        >
-          {/**
-           * Passing promises and consuming them using React.use for triggering the suspense fallback.
-           * @see https://react.dev/reference/react/use
-           */}
-          <TasksTable tasksPromise={tasksPromise} />
-        </React.Suspense>
-      </TasksTableProvider>
-    </Shell>
+    <div className="flex items-center justify-center">
+      <Link href={"/tasks"}>
+        <Button>View Tasks</Button>
+      </Link>
+    </div>
   );
 }

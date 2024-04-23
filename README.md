@@ -34,3 +34,6 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 - [x] Actually set up a database (vercel postgres)
 - [x] Attach database to UI
 - [x] Add authentication (w/ nextAuth)
+- [x] Error management (w/ Sentry)
+- [x] Analytics (posthog)
+- [] Ratelimiting (upstash)
