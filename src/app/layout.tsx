@@ -61,14 +61,14 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
       <head />
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen font-sans antialiased",
           GeistSans.variable,
           GeistMono.variable,
         )}
       >
         <Providers>
           <div className="relative flex min-h-screen flex-col">
-            <SiteHeader />
+            {/* <SiteHeader /> */}
             <main className="flex-1">{children}</main>
           </div>
           <TailwindIndicator />

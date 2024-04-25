@@ -3,24 +3,24 @@ import type { SearchParams } from "~/types";
 import { DataTableSkeleton } from "~/components/data-table/data-table-skeleton";
 import { DateRangePicker } from "~/components/date-range-picker";
 import { Shell } from "~/components/shell";
-import { TasksTable } from "../_components/tasks-table";
-import { TasksTableProvider } from "../_components/tasks-table-provider";
-import { getTasks } from "../_lib/queries";
-import { searchParamsSchema } from "../_lib/validations";
+import { TasksTable } from "../../_components/tasks-table";
+import { TasksTableProvider } from "../../_components/tasks-table-provider";
+import { getTasks } from "../../_lib/queries";
+import { searchParamsSchema } from "../../_lib/validations";
 import { db } from "~/server/db";
 export const dynamic = "force-dynamic";
 
-export interface IndexPageProps {
+export interface TasksPageProps {
   searchParams: SearchParams;
 }
-export default async function HomePage({ searchParams }: IndexPageProps) {
+export default async function TasksPage({ searchParams }: TasksPageProps) {
   const search = searchParamsSchema.parse(searchParams);
 
   const tasksPromise = getTasks(search);
   const users = await db.query.users.findMany();
   console.log(users);
   return (
-    <Shell className="gap-2">
+    <Shell className="gap-2 bg-background">
       {/**
        * The `TasksTableProvider` is use to enable some feature flags for the `TasksTable` component.
        * Feel free to remove this, as it's not required for the `TasksTable` component to work.

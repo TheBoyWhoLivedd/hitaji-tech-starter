@@ -1,6 +1,5 @@
 import { relations, sql } from "drizzle-orm";
 import {
-  boolean,
   index,
   integer,
   pgEnum,
@@ -9,7 +8,6 @@ import {
   serial,
   text,
   timestamp,
-  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
@@ -43,13 +41,6 @@ export const priorityEnum = pgEnum(`mentee-register_priority`, [
   "high",
 ]);
 
-export const UserRoleEnum = pgEnum(`mentee-register_userRole`, [
-  "ADMIN",
-  "USER",
-]);
-
-// Table definitions
-
 export const posts = createTable(
   "post",
   {
@@ -70,33 +61,25 @@ export const posts = createTable(
 );
 
 export const users = createTable("user", {
-  id: varchar("id", { length: 255 })
-    .$defaultFn(() => generateId())
-    .notNull()
-    .primaryKey(),
+  id: varchar("id", { length: 255 }).notNull().primaryKey(),
   name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).unique(),
-  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  email: varchar("email", { length: 255 }).notNull(),
+  emailVerified: timestamp("emailVerified", {
+    mode: "date",
+  }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar("image", { length: 255 }),
-  password: varchar("password", { length: 255 }),
-  role: UserRoleEnum("role").notNull().default("USER"),
-  isTwoFactorEnabled: boolean("isTwoFactorEnabled").default(false),
 });
 
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
-  twoFactorConfirmation: one(twoFactorConfirmation),
 }));
 
 export const accounts = createTable(
   "account",
   {
-    id: varchar("id", { length: 255 })
-      .default(sql`gen_random_uuid()`)
-      .notNull(),
     userId: varchar("userId", { length: 255 })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id),
     type: varchar("type", { length: 255 })
       .$type<AdapterAccount["type"]>()
       .notNull(),
@@ -122,64 +105,35 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = createTable(
-  "verificationToken",
+export const sessions = createTable(
+  "session",
   {
-    id: varchar("id", { length: 255 })
+    sessionToken: varchar("sessionToken", { length: 255 })
       .notNull()
-      .default(sql`gen_random_uuid()`),
-    email: varchar("email", { length: 255 }).notNull(),
-    token: varchar("token", { length: 255 }).notNull().unique(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.email, vt.token] }),
-  }),
-);
-
-export const passwordResetTokens = createTable("passwordResetToken", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .default(sql`gen_random_uuid()`)
-    .primaryKey(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  token: varchar("token", { length: 255 }).notNull().unique(),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
-});
-
-export const twoFactorTokens = createTable("twoFactorToken", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .default(sql`gen_random_uuid()`)
-    .primaryKey(),
-  email: varchar("email", { length: 255 }).notNull(),
-  token: varchar("token", { length: 255 }).notNull().unique(),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
-});
-
-export const twoFactorConfirmation = createTable(
-  "twoFactorConfirmation",
-  {
-    id: varchar("id", { length: 255 })
-      .notNull()
-      .default(sql`gen_random_uuid()`)
       .primaryKey(),
     userId: varchar("userId", { length: 255 })
       .notNull()
       .references(() => users.id),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
   },
-  (tfc) => ({
-    uniqueKey: uniqueIndex("tfc_userId_unique").on(tfc.userId),
+  (session) => ({
+    userIdIdx: index("session_userId_idx").on(session.userId),
   }),
 );
 
-export const twoFactorConfirmationRelations = relations(
-  twoFactorConfirmation,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [twoFactorConfirmation.userId],
-      references: [users.id],
-    }),
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const verificationTokens = createTable(
+  "verificationToken",
+  {
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
+  },
+  (vt) => ({
+    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
 
